@@ -1,0 +1,21 @@
+getwd()
+setwd("C:/Users/Joseph.Madison/Documents/Acris_microbiome_experiment/Figures/bacteria_growth_curve")
+
+library(ggplot2)
+gcdata <- read.csv("gcdata.csv")
+gcdata
+df <- gcdata
+head(df)
+
+# Default line plot
+p <- ggplot(df, aes(x=Hour, y=Mean.OD600, group=Strain, color=Strain)) + 
+  geom_line() +
+  geom_point()+
+  geom_errorbar(aes(ymin=Mean.OD600-SD.OD600, ymax=Mean.OD600+SD.OD600), width=.2,
+                 position=position_dodge(0.05))
+print(p)
+# Finished line plot
+p+labs(x="Time (h)", y = "OD600")+
+   theme_bw() +
+   theme(axis.text=element_text(size=13),legend.title=element_text(size=13),legend.text=element_text(size=13))+
+   scale_color_manual(values=c('black','red3'))
