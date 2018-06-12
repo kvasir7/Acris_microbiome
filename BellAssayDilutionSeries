@@ -1,0 +1,8 @@
+> setwd("C:/Users/Joseph.Madison/Documents/Acris_microbiome_experiment/SerratiavsBd_Experiments")
+> data <- read.csv("TGhLDilutionRInput.csv", header=TRUE)
+> a = aov(Percent.TGhL~Corrected.OD, data=data)
+> summary(a)
+             Df Sum Sq Mean Sq F value Pr(>F)
+Corrected.OD  1   1345    1345   1.215  0.276
+Residuals    48  53105    1106               
+> plot(Percent.TGhL~Corrected.OD, data=data)
