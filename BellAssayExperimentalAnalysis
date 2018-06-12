@@ -1,0 +1,57 @@
+> setwd("C:/Users/Joseph.Madison/Documents/Acris_microbiome_experiment/SerratiavsBd_Experiments")
+> getwd()
+[1] "C:/Users/Joseph.Madison/Documents/Acris_microbiome_experiment/SerratiavsBd_Experiments"
+> data <- read.csv("RInputBdColorCorrection.csv")
+> data
+   Day           Treatment Mean.OD492    SD.OD492
+1    0  Bd + WTSupernatant   0.009667 0.004427189
+2    0 Bd + MUTSupernatant   0.046467 0.060240850
+3    0                 Bd    0.007267 0.004882622
+4    1  Bd + WTSupernatant  -0.017467 0.006241795
+5    1 Bd + MUTSupernatant  -0.034467 0.020445048
+6    1                 Bd   -0.022467 0.008704022
+7    2  Bd + WTSupernatant  -0.006467 0.013407461
+8    2 Bd + MUTSupernatant   0.030733 0.045866764
+9    2                 Bd    0.025533 0.022355313
+10   3  Bd + WTSupernatant  -0.007934 0.021378494
+11   3 Bd + MUTSupernatant   0.095266 0.060168430
+12   3                 Bd    0.054466 0.023888072
+13   4  Bd + WTSupernatant   0.017733 0.021378494
+14   4 Bd + MUTSupernatant   0.120933 0.060168430
+15   4                 Bd    0.106533 0.029335303
+16   5  Bd + WTSupernatant   0.039466 0.028385912
+17   5 Bd + MUTSupernatant   0.136066 0.056364528
+18   5                 Bd    0.142466 0.034161967
+19   6  Bd + WTSupernatant   0.101733 0.047115178
+20   6 Bd + MUTSupernatant   0.177333 0.054770065
+21   6                 Bd    0.162533 0.036295454
+22   7  Bd + WTSupernatant   0.176000 0.067370617
+23   7 Bd + MUTSupernatant   0.202600 0.062381407
+24   7                 Bd    0.183800 0.033314261
+25   8  Bd + WTSupernatant   0.206933 0.070309601
+26   8 Bd + MUTSupernatant   0.182533 0.048303209
+27   8                 Bd    0.181733 0.039879819
+> head(data)
+  Day           Treatment Mean.OD492    SD.OD492
+1   0  Bd + WTSupernatant   0.009667 0.004427189
+2   0 Bd + MUTSupernatant   0.046467 0.060240850
+3   0                 Bd    0.007267 0.004882622
+4   1  Bd + WTSupernatant  -0.017467 0.006241795
+5   1 Bd + MUTSupernatant  -0.034467 0.020445048
+6   1                 Bd   -0.022467 0.008704022
+
+### Make Plot ###
+> p <- ggplot(data, aes(x=Day, y=Mean.OD492, group=Treatment, color=Treatment)) + 
++   geom_line() +
++   geom_point()+
++   geom_errorbar(aes(ymin=Mean.OD492-SD.OD492, ymax=Mean.OD492+SD.OD492), width=.2,
++                  position=position_dodge(0.05))
+> print(p)
+> p+labs(x="Time (day)", y = "OD492")+
++    theme_bw() +
++    theme(axis.text=element_text(size=13),legend.title=element_text(size=13),legend.text=element_text(size=13))+
++    scale_color_manual(values=c('black','red3','blue'))
+> p+labs(x="Time (day)", y = "OD492")+
++    theme_bw() +
++    theme(axis.text=element_text(size=13),legend.title=element_text(size=13),legend.text=element_text(size=13))+
++    scale_color_manual(values=c('black','red3','blue'))
