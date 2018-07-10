@@ -1,0 +1,234 @@
+#Load libraries
+library(ggplot2)
+library(vegan)
+library(dplyr)
+library(scales)
+library(grid)
+library(reshape2)
+library(phyloseq)
+
+setwd("C:/Users/Joseph.Madison/Documents/Acris_microbiome_experiment/acris_mothur_analysis/acris_data/output")
+getwd()
+source("MicrobeMiseq/R/miseqR.R")
+theme_set(theme_bw())
+
+sharedfile = "acris.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.opti_mcc.shared"
+taxfile = "acris.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.opti_mcc.0.03.cons.taxonomy"
+mapfile = "metadata.csv"
+
+mothur_data <- import_mothur(mothur_shared_file = sharedfile, mothur_constaxonomy_file = taxfile)
+mothur_data
+
+map <- read.csv(mapfile)
+map <- sample_data(map)
+rownames(map) <- map$SampleID
+sample_names(map)
+sample_names(mothur_data)
+
+acris_merge <- merge_phyloseq(mothur_data, map)
+acris_merge
+
+colnames(tax_table(acris_merge))
+
+colnames(tax_table(acris_merge)) <- c("Kingdom", "Phylum", "Class", 
+  "Order", "Family", "Genus")
+
+acris <- acris_merge
+acris
+
+###sample summary###
+# Make a data frame with a column for the read counts of each sample
+sample_sum_df <- data.frame(sum = sample_sums(acris))
+
+# Histogram of sample read counts
+ggplot(sample_sum_df, aes(x = sum)) + 
+  geom_histogram(color = "black", fill = "indianred", binwidth = 25) +
+  ggtitle("Distribution of sample sequencing depth") + 
+  xlab("Read counts") +
+  theme(axis.title.y = element_blank())
+
+# mean, max and min of sample read counts
+smin <- min(sample_sums(acris))
+smean <- mean(sample_sums(acris))
+smax <- max(sample_sums(acris))
+smin
+smean
+smax
+
+###unconstrained ordination###
+# Scale reads to even depth 
+acris_scale <- acris %>%
+  scale_reads(round = "round")
+
+# Fix hour levels in sample_data
+sample_data(acris_scale)$Week <- factor(
+  sample_data(acris_scale)$Week, 
+  levels = c("0", "1", "2", "3", "4")
+)
+
+
+# Ordinate
+acris_pcoa <- ordinate(
+  physeq = acris_scale, 
+  method = "PCoA", 
+  distance = "bray"
+)
+
+# Plot 
+plot_ordination(
+  physeq = acris_scale,
+  ordination = acris_pcoa,
+  color = "Bacteria",
+  shape = "Week",
+  title = "PCoA of Acris Bacterial Communities"
+) + 
+  scale_color_manual(values = c("black", "tan", "red")
+  ) +
+  geom_point(aes(color = Bacteria), alpha = 0.7, size = 4) +
+  geom_point(colour = "grey90", size = 1.5)
+
+
+###NMDS###
+set.seed(1)
+
+# Ordinate
+acris_nmds <- ordinate(
+  physeq = acris_scale, 
+  method = "NMDS", 
+  distance = "bray"
+)
+
+# Plot 
+plot_ordination(
+  physeq = acris_scale,
+  ordination = acris_nmds,
+  color = "Bacteria",
+  shape = "Week",
+  title = "NMDS of Acris Bacterial Communities"
+) + 
+  scale_color_manual(values = c("black", "tan", "red")
+  ) +
+  geom_point(aes(color = Bacteria), alpha = 0.7, size = 4) +
+  geom_point(colour = "grey90", size = 1.5) 
+
+
+###PERMANOVA###
+set.seed(1)
+
+# Calculate bray curtis distance matrix
+acris_bray <- phyloseq::distance(acris_scale, method = "bray")
+
+# make a data frame from the sample_data
+sampledf <- data.frame(sample_data(acris))
+
+# Adonis test
+adonis(acris_bray ~ Bacteria, data = sampledf)
+
+# Homogeneity of dispersion test
+beta <- betadisper(acris_bray, sampledf$Bacteria)
+permutest(beta)
+
+
+###Alpha-Diversity###
+min_lib <- min(sample_sums(acris))
+
+nsamp = nsamples(acris)
+trials = 100
+
+richness <- matrix(nrow = nsamp, ncol = trials)
+row.names(richness) <- sample_names(acris)
+
+evenness <- matrix(nrow = nsamp, ncol = trials)
+row.names(evenness) <- sample_names(acris)
+
+set.seed(3)
+
+for (i in 1:100) {  
+  r <- rarefy_even_depth(acris, sample.size = min_lib, verbose = FALSE, replace = TRUE)
+  
+  rich <- as.numeric(as.matrix(estimate_richness(r, measures = "Observed")))
+  richness[ ,i] <- rich
+  
+  even <- as.numeric(as.matrix(estimate_richness(r, measures = "InvSimpson")))
+  evenness[ ,i] <- even
+}
+
+SampleID <- row.names(richness)
+mean <- apply(richness, 1, mean)
+sd <- apply(richness, 1, sd)
+measure <- rep("Richness", nsamp)
+rich_stats <- data.frame(SampleID, mean, sd, measure)
+
+SampleID <- row.names(evenness)
+mean <- apply(evenness, 1, mean)
+sd <- apply(evenness, 1, sd)
+measure <- rep("Inverse Simpson", nsamp)
+even_stats <- data.frame(SampleID, mean, sd, measure)
+
+alpha <- rbind(rich_stats, even_stats)
+s <- data.frame(sample_data(acris))
+alphadiv <- merge(alpha, s, by = "SampleID") 
+
+alphadiv
+
+p <- ggplot(alphadiv, aes(x = Week, y = mean, fill=Bacteria, color = Bacteria, group = Bacteria, shape = Bacteria)) +
+  facet_grid(measure ~ Bacteria ~ Week, scales = "free") +
+  stat_boxplot(geom = "errorbar", color="black", position=position_dodge(1), width=0.25)+
+  geom_boxplot(color="black", outlier.shape=16, outlier.size=2, notch=FALSE, position=position_dodge(2))
+
+p
+p + scale_fill_grey()
+
+#alternate
+ggplot(alphadiv, aes(x = Week, y = mean, color = Bacteria, group = Bacteria, shape = Bacteria)) +
+  geom_point(size = 2) + 
+  geom_line(size = 0.8) +
+  facet_wrap(~measure, ncol = 1, scales = "free") +
+  scale_color_manual(values = c("#E96446", "#302F3D", "#87CEFA")) +
+  scale_x_discrete(
+    breaks = c("0", "1", "2", "3", "4"),
+    labels = c("0", "1", "2", "3", "4"), 
+    drop = FALSE
+  ) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  ) 
+
+###################################
+###BAR GRAPH###
+
+acris_genus <- acris %>%
+  tax_glom(taxrank = "Genus") %>%                     # agglomerate at phylum level
+  transform_sample_counts(function(x) {x/sum(x)} ) %>% # Transform to rel. abundance
+  psmelt() %>%                                         # Melt to long format
+  filter(Abundance > 0.10) %>%                         # Filter out low abundance taxa
+  arrange(Genus)                                      # Sort data frame alphabetically by phylum
+
+# Set colors for plotting
+order_colors <- c(
+  "#CBD588", "#5F7FC7", "orange","#DA5724", "yellow", "green",
+   "#AD6F3B", "#673770","#D14285", "#652926", "#C84248", 
+  "#8569D5", "red", "#5E738F", "#D1A33D", "#8A7C64", "#599861", "508578", "purple", "black", "brown"
+)
+
+# Plot 
+ggplot(acris_genus, aes(x = Bacteria, y = Abundance, fill = Genus)) + 
+  facet_wrap(Week ~ Bd, scales = "free") +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = order_colors) +
+  scale_x_discrete(
+  ) + 
+  # Remove x axis title
+  theme(axis.title.x = element_blank()) + 
+  #
+  guides(fill = guide_legend(reverse = TRUE, keywidth = 1, keyheight = 2.1)) +
+  ylab("Relative Abundance (Genus > 10%) \n") +
+  ggtitle("Genus Composition of Acris Microbiomes")+
+  theme_bw(base_size = 12) 
+  
+#################################
+###t-tests
+x = variable1
+y = variable2
+t.test(x,y)
