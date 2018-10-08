@@ -1,0 +1,13 @@
+###survival curve model analysis
+
+> library(survival)
+> library(survminer)
+
+# Survival curves with global p-value
+data(acris)
+fit <- survfit(Surv(Date, Mortality) ~ Treatment, data = acris)
+ggsurvplot(fit, legend.labs = levels(Treatment), pval = TRUE)
+
+ ### pairwise comparisons
+> res <- pairwise_survdiff(Surv(Date, Mortality) ~ Treatment, data=acris)
+> res
