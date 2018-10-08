@@ -1,6 +1,93 @@
 getwd()
 setwd("C:/Users/Joseph.Madison/Documents/Acris_microbiome_experiment/Figures/bacteria_growth_curve")
 
+###growthcurves comparisons WT-Sm vs KO-Sm
+> growth <- read.csv("growth21.csv")
+> model = lmer(OD600 ~ Type*Hour+(1|Replicate), data=growth)
+> anova(model)
+Type III Analysis of Variance Table with Satterthwaite's method
+          Sum Sq Mean Sq NumDF DenDF   F value Pr(>F)    
+Type       0.005   0.005     1   242    0.2117 0.6458    
+Hour      64.178  64.178     1   242 2972.5562 <2e-16 ***
+Type:Hour  0.010   0.010     1   242    0.4483 0.5038   
+---
+Signif. Codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+> summary(model)
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: OD600 ~ Type * Hour + (1 | Replicate)
+   Data: growth
+
+REML criterion at convergence: -217.6
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-2.15315 -0.88144  0.01217  0.76289  2.07818 
+
+Random effects:
+ Groups    Name        Variance  Std.Dev.
+ Replicate (Intercept) 6.512e-05 0.00807 
+ Residual              2.159e-02 0.14694 
+Number of obs: 250, groups:  Replicate, 5
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)  -0.057258   0.025769 116.445147  -2.222   0.0282 *  
+TypeWT       -0.016604   0.036084 241.999998  -0.460   0.6458    
+Hour          0.069400   0.001823 241.999999  38.079   <2e-16 ***
+TypeWT:Hour   0.001726   0.002577 241.999998   0.670   0.5038    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) TypeWT Hour  
+TypeWT      -0.700              
+Hour        -0.849  0.606       
+TypeWT:Hour  0.600 -0.857 -0.707
+
+### Anti-Bd Growth Curve Comparisons
+>library(reshape2)
+>library(lme4)
+>library(nlme)
+>library(emmeans)
+>data <- read.csv("RInputBdColorCorrection.csv")
+>mdata <- melt(data, id=c("Treatment","Day"))
+>model = lm(value ~ Treatment*Day, data=mdata)
+> anova(model)
+Analysis of Variance Table
+
+Response: value
+               Df Sum Sq Mean Sq F value    Pr(>F)    
+Treatment       2 0.4546 0.22730 11.5478 1.746e-05 ***
+Day             1 0.6287 0.62874 31.9420 5.138e-08 ***
+Treatment:Day   2 0.2608 0.13042  6.6257  0.001621 ** 
+Residuals     210 4.1336 0.01968                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> emmeans(model, list(pairwise~Treatment), adjust = "tukey")
+NOTE: Results may be misleading due to involvement in interactions
+$`emmeans of Treatment`
+ Treatment              emmean         SE  df   lower.CL  upper.CL
+ Bd                  0.2415287 0.01350025 210 0.21491532 0.2681421
+ Bd + MUTSupernatant 0.2056481 0.01909224 210 0.16801114 0.2432852
+ Bd + WTSupernatant  0.1291667 0.01909224 210 0.09152965 0.1668037
+
+Confidence level used: 0.95 
+
+$`pairwise differences of Treatment`
+ contrast                                   estimate         SE  df t.ratio
+ Bd - Bd + MUTSupernatant                 0.03588056 0.02338313 210   1.534
+ Bd - Bd + WTSupernatant                  0.11236204 0.02338313 210   4.805
+ Bd + MUTSupernatant - Bd + WTSupernatant 0.07648148 0.02700051 210   2.833
+ p.value
+  0.2769
+  <.0001
+  0.0140
+
+P value adjustment: tukey method for comparing a family of 3 estimates 
+
+###plot
 library(ggplot2)
 gcdata <- read.csv("gcdata.csv")
 gcdata
