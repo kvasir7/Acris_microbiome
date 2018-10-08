@@ -1,0 +1,18 @@
+### mixed effects models
+> library(lme4)
+> library(emmeans)
+
+> acris <- read.csv("experiment_data_R_finalNA.csv")
+> acris$Treatment <- as.factor(acris$Treatment)
+> acris$Date <- as.factor(acris$Date)
+> acris$TreatmentDate <- interaction(acris$Treatment, acris$Date)
+
+> modelsimp <- lmer(InvSimpMean ~ TreatmentDate+(1|Frog.Number), data=acris)
+> modelmass <- lmer(Mass ~ TreatmentDate+(1|Frog.Number), data=acris)
+> modelmortality <- lmer(Mortality ~ TreatmentDate+(1|Frog.Number), data=acris)
+> modelbd <- lmer(Bd ~ TreatmentDate+(1|Frog.Number), data=acris)
+
+### estimated marginal means comparisons of above models
+> simp.emm <- emmeans(modelsimp, list(pairwise~TreatmentDate), adjust = "tukey")
+> mass.emm <- emmeans(modelmass, list(pairwise~TreatmentDate), adjust = "tukey")
+> bd.emm <- emmeans(modelbd, list(pairwise~TreatmentDate), adjust = "tukey")
