@@ -9,7 +9,6 @@
 
 > modelsimp <- lmer(InvSimpMean ~ TreatmentDate+(1|Frog.Number), data=acris)
 > modelmass <- lmer(Mass ~ TreatmentDate+(1|Frog.Number), data=acris)
-> modelmortality <- lmer(Mortality ~ TreatmentDate+(1|Frog.Number), data=acris)
 > modelbd <- lmer(Bd ~ TreatmentDate+(1|Frog.Number), data=acris)
 
 ### estimated marginal means comparisons of above models
