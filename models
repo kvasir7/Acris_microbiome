@@ -36,3 +36,15 @@
 > p
 > p + labs(x="Day", y="Mass (g)") + theme_bw()
 
+ ### Serratia Abundances (by OTU abundance) ###
+> library(lme4)
+> library(emmeans)
+> acris <- read.csv("Serratia_abundances.csv")
+> acris$Treatment <- as.factor(acris$Treatment)
+> acris$Time <- as.factor(acris$Time)
+> acris$TreatmentTIme <- interaction(acris$Treatment, acris$Time)
+> acris$TreatmentTime <- interaction(acris$Treatment, acris$Time)
+> modelsm <- lmer(Sm ~ TreatmentTime+(1|Frog), data=acris)
+> sm.emm <- emmeans(modelsm, list(pairwise~TreatmentTime), adjust = "tukey")
+> sm.emm
+
