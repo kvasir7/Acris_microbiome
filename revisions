@@ -1,0 +1,35 @@
+### hazard versus survival plots: an arbitrary function defining a transformation of the survival curve. Often used transformations can be specified with a character argument: "event" plots cumulative events (f(y) = 1-y), "cumhaz" plots the cumulative hazard function (f(y) = -log(y)), and "pct" for survival probability in percentage.
+>library(survival)
+>library(survminer)
+> acris <- read.csv("experiment_data_R_finalNA_procBrev.csv")
+> head(acris)
+> fit <- survfit(Surv(Date, Mortality) ~ Bd + Bacteria + Wash, data = acris)
+> fit
+> ggsurv <- ggsurvplot(fit, fun = "cumhaz", conf.int = TRUE, palette = "ucscgb", legend.title = "Treatments")
+> ggsurv$plot + theme_bw() + facet_grid(Bacteria ~ Wash)
+> ggsurv <- ggsurvplot(fit, fun = "pct", conf.int = TRUE, palette = "ucscgb", legend.title = "Treatments")
+> ggsurv$plot + theme_bw() + facet_grid(Bacteria ~ Wash)
+> res <- pairwise_survdiff(Surv(Date, Mortality) ~ Bd + Bacteria + Wash, data=acris)
+> res
+###Figure3###
+> fit <- survfit(Surv(Date, Mortality) ~ Bacteria, data = acris)
+> tiff("test.tiff", units="in", width=6, height=5, res=300)
+> p <- ggsurvplot_facet(fit, acris, fun = "pct", facet.by = c("Bd", "Wash"), palette = "uchicago", pval = TRUE, legend.title = "Bacteria:")
+> p + theme_bw()
+> dev.off()
+
+> fit <- survfit(Surv(Date, Mortality) ~ Bacteria, data = acris)
+
+###Figure1###
+> data <- read.csv("RInputBdColorCorrection_R.csv")
+> p <- ggplot(data, aes(x=Day, y=MeanOD492, group=Treatment, color=Treatment)) +
++ geom_line() +
++ geom_point() + 
++ geom_errorbar(aes(ymin=MeanOD492-SDOD492, ymax=MeanOD492+SDOD492), width=.2, position=position_dodge(0.05))
+> print(p)
+> tiff("test.tiff", units="in", width=8, height=5, res=300)
+> p+labs(x="Time (h)", y = "OD600")+
++ theme_bw() +
++ theme(axis.text=element_text(size=13),legend.title=element_text(size=13),legend.text=element_text(size=13))+
++ scale_color_manual(values=c('black','red3', 'blue'))
+> dev.off()
