@@ -1,13 +1,20 @@
 ###survival curve model analysis
 
-> library(survival)
-> library(survminer)
+### hazard versus survival plots: an arbitrary function defining a transformation of the survival curve. Often used transformations can be specified with a character argument: "event" plots cumulative events (f(y) = 1-y), "cumhaz" plots the cumulative hazard function (f(y) = -log(y)), and "pct" for survival probability in percentage.
+library(survival)
+library(survminer)
+acris <- read.csv("experiment_data_R_finalNA_procBrev.csv")
+head(acris)
+fit <- survfit(Surv(Date, Mortality) ~ Bd + Bacteria + Wash, data = acris)
+fit
+ggsurv <- ggsurvplot(fit, fun = "pct", conf.int = TRUE, palette = "ucscgb", legend.title = "Treatments")
+ggsurv$plot + theme_bw() + facet_grid(Bacteria ~ Wash)
+res <- pairwise_survdiff(Surv(Date, Mortality) ~ Bd + Bacteria + Wash, data=acris)
+res
 
-# Survival curves with global p-value
-data(acris)
-fit <- survfit(Surv(Date, Mortality) ~ Treatment, data = acris)
-ggsurvplot(fit, legend.labs = levels(Treatment), pval = TRUE)
-
- ### pairwise comparisons
-> res <- pairwise_survdiff(Surv(Date, Mortality) ~ Treatment, data=acris)
-> res
+###Figure3###
+fit <- survfit(Surv(Date, Mortality) ~ Bacteria, data = acris)
+tiff("test.tiff", units="in", width=6, height=5, res=300)
+p <- ggsurvplot_facet(fit, acris, fun = "pct", facet.by = c("Bd", "Wash"), palette = "uchicago", pval = TRUE, legend.title = "Bacteria:")
+p + theme_bw()
+dev.off()
