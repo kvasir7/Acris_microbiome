@@ -87,22 +87,21 @@ $`pairwise differences of Treatment`
 
 P value adjustment: tukey method for comparing a family of 3 estimates 
 
-###plot
-library(ggplot2)
-gcdata <- read.csv("gcdata.csv")
-gcdata
-df <- gcdata
-head(df)
+###Figure1###
 
-# Default line plot
-p <- ggplot(df, aes(x=Hour, y=Mean.OD600, group=Strain, color=Strain)) + 
-  geom_line() +
-  geom_point()+
-  geom_errorbar(aes(ymin=Mean.OD600-SD.OD600, ymax=Mean.OD600+SD.OD600), width=.2,
-                 position=position_dodge(0.05))
+data <- read.csv("RInputBdColorCorrection_R.csv")
+
+p <- ggplot(data, aes(x=Day, y=MeanOD492, group=Treatment, color=Treatment)) +
++ geom_line() +
++ geom_point() + 
++ geom_errorbar(aes(ymin=MeanOD492-SDOD492, ymax=MeanOD492+SDOD492), width=.2, position=position_dodge(0.05))
 print(p)
-# Finished line plot
+tiff("test.tiff", units="in", width=8, height=5, res=300)
+
 p+labs(x="Time (h)", y = "OD600")+
-   theme_bw() +
-   theme(axis.text=element_text(size=13),legend.title=element_text(size=13),legend.text=element_text(size=13))+
-   scale_color_manual(values=c('black','red3'))
++ theme_bw() +
++ theme(axis.text=element_text(size=13),legend.title=element_text(size=13),legend.text=element_text(size=13))+
++ scale_color_manual(values=c('black','red3', 'blue'))
+
+dev.off()
+
