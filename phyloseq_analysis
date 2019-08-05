@@ -75,18 +75,9 @@ acris_pcoa <- ordinate(
 )
 
 # Plot 
-plot_ordination(
-  physeq = acris_scale,
-  ordination = acris_pcoa,
-  color = "Bacteria",
-  shape = "Week",
-  title = "PCoA of Acris Bacterial Communities"
-) + 
-  scale_color_manual(values = c("black", "tan", "red")
-  ) +
-  geom_point(aes(color = Bacteria), alpha = 0.7, size = 4) +
-  geom_point(colour = "grey90", size = 1.5)
-
+p3 = plot_ordination(physeq = acris, ordination = acris_pcoa, color = "Bacteria", shape = "Week")
+pa = p3 + facet_wrap(Infection~Wash~Week, 4)
+pa + scale_color_manual(values = c("gray40", "maroon", "darkorange2"))
 
 ###NMDS###
 set.seed(1)
